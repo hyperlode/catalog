@@ -61,7 +61,7 @@ const Demo = (() => {
       if (!name) return null;
       let c = categories.find((x) => x.name.toLowerCase() === name.toLowerCase());
       if (!c) {
-        c = { id: crypto.randomUUID(), name, description: null };
+        c = { id: uuid(), name, description: null };
         categories.push(c);
       }
       return c.id;
@@ -75,7 +75,7 @@ const Demo = (() => {
         const thumb = URL.createObjectURL(await resizeToJpeg(files[i], 480));
         images.push({ position: i, original_filename: files[i].name, path_original: web, path_web: web, path_thumb: thumb });
       }
-      const id = crypto.randomUUID();
+      const id = uuid();
       artworks.push({ id, category_id: Demo.findOrCreateCategory(categoryName), artwork_image: images, ...rest });
       return id;
     },
