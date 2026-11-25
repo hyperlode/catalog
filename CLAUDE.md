@@ -51,7 +51,7 @@ Scope is deliberately **one artist, one user, one database, one deployment**. Do
 
 ## Hosting and URLs
 
-- Domain: **`archiefphilippe.ameije.com`**, hosted on **GitHub Pages** (`ameije.com` itself is already a GitHub Pages site; Cloudflare is not used). Set the custom domain in the repo's Pages settings (plus a `CNAME` file in the published output) and add a DNS `CNAME` record for the subdomain pointing at GitHub Pages. Build and publish with a GitHub Actions workflow. The Supabase URL and anon key are public values and may live in the build config; never the `service_role` key.
+- Domain: **`catalog.ameije.com`**, hosted on **GitHub Pages** (`ameije.com` itself is already a GitHub Pages site under the owner's GitHub account; its DNS is managed at Cloudflare, so the new subdomain record is a CNAME to `<github-user>.github.io` set to DNS-only, not proxied). Set the custom domain in the repo's Pages settings (plus a `CNAME` file in the published output) and add a DNS `CNAME` record for the subdomain pointing at GitHub Pages. Build and publish with a GitHub Actions workflow. The Supabase URL and anon key are public values and may live in the build config; never the `service_role` key.
 - GitHub Pages has no server-side rewrites: so client-side routes survive a refresh, the app uses hash-based routing. Pages sites are public and have size/bandwidth limits, so images live in Supabase storage, not in the repo.
 
 ## Durability (owner is worried about free tiers and losing pictures)
