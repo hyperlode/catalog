@@ -37,6 +37,9 @@ async function render(el) {
         ? select(t.category, filter.category,
           [['', t.all], ...categories.map((c) => [c.id, c.name])],
           (v) => { filter.category = v; draw(); })
+        : null,
+      artworks.length
+        ? h('button', { class: 'button pdf', onclick: (e) => PDF.download(e.currentTarget) }, t.pdfButton)
         : null),
     list);
   draw();

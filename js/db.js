@@ -1,6 +1,6 @@
 // supabase-js is vendored in js/vendor/supabase.js (UMD build, global `supabase`),
 // so the site works from file:// and needs no CDN or build step.
-const isConfigured = !CONFIG.SUPABASE_URL.includes('YOUR-PROJECT');
+const isConfigured = !CONFIG.SUPABASE_URL.includes('YOUR-') && !CONFIG.SUPABASE_ANON_KEY.includes('YOUR-');
 
 const db = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 

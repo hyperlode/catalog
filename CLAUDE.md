@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-A first scaffold exists (plain JavaScript, no framework, no build step, no Node). It has **not been run against a real Supabase project yet**: `js/config.js` still holds placeholders and `supabase/schema.sql` has not been applied. Not a git repo yet.
+The app works end to end against a real Supabase project (URL and publishable key are in `js/config.js`; `supabase/schema.sql` is applied, sign-ups are disabled, the single user exists). Plain JavaScript, no framework, no build step, no Node. Not yet published to GitHub Pages/the custom domain, and no backup job exists yet.
 
 ## Commands
 
@@ -12,7 +12,7 @@ There is no package manager, build, lint or test tooling. Files are served as-is
 
 - Run locally: just double-click `index.html` (works from `file://`; no server needed). Needs internet only to reach Supabase.
 - Deploy: GitHub Pages serves the repo root directly (no workflow needed); `CNAME` holds the custom domain.
-- First-time backend setup: run `supabase/schema.sql` in the Supabase SQL editor, disable sign-ups, create the one user by hand, then fill in `js/config.js` (URL + anon key only).
+- First-time backend setup: run `supabase/schema.sql` in the Supabase SQL editor, disable sign-ups, create the one user by hand, then fill in `js/config.js` (URL + public anon/publishable key only). Check `GET <url>/auth/v1/settings` shows `disable_signup: true`; the write policies trust any authenticated user, so open sign-ups would let anyone write.
 
 ## Code structure
 
@@ -20,6 +20,7 @@ There is no package manager, build, lint or test tooling. Files are served as-is
 - `js/app.js`: header, floating Add button, and a **hash router** (`#/`, `#/work/:id`, `#/category/:id`, `#/add`, `#/edit/:id`, `#/login`). Hash routing is deliberate: GitHub Pages cannot rewrite URLs and Supabase auth redirects are not used. Each view in `js/views/` provides `render(el, ...routeParams)`.
 - **Demo mode**: while `js/config.js` still has the placeholder URL (`isConfigured` is false in `js/db.js`), every function in `js/api.js` delegates to `js/demo.js` (in-memory sample works, generated placeholder pictures, auto "logged in", banner in the header). Nothing persists across refresh. Setting the real Supabase URL switches to the real backend with no other change. Keep `Demo` function signatures identical to `api.js` when changing either.
 - `js/api.js` is the only place that talks to Supabase (DB + storage). `createArtwork` generates the UUID client-side, inserts the row, then uploads for each photo: the untouched **original**, a 1600px **web** JPEG and a 480px **thumb** JPEG (resized in the browser, `js/images.js`); on any failure it rolls back rows and files.
+- **PDF export** (`js/pdf.js`, button on the home page): builds the whole catalog in the browser with jsPDF (vendored `js/vendor/jspdf.js` 2.5.1): cover, contents (chapters with page numbers), then one chapter per category (chapters ordered by earliest work, works without a category in a final "Overige werken" chapter, works oldest first). One A4 page per work: main picture (web version re-encoded to <=1200px), up to 4 extra pictures as thumbnails, title, date and type, description (truncated with an ellipsis if too long). Pictures are fetched cross-origin, which relies on Supabase storage sending CORS headers. Built-in PDF fonts only: characters outside Latin-1/WinAnsi will not render.
 - `js/dom.js` `h()` builds elements (text only, never `innerHTML`). `js/strings.js` holds all UI text (Dutch). `js/dates.js` stores approximate dates as first-of-period plus `date_precision`.
 - Login is **email + password** (one account, created by hand; sign-ups disabled). `auth.loggedIn` in `js/db.js` toggles the Add/Edit/Delete UI; the real protection is the RLS in `schema.sql`.
 - Edit changes text fields only; adding/removing pictures on an existing work is not built yet.

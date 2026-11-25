@@ -121,3 +121,4 @@ button:disabled { opacity: .5; }
 }
 
 .demo { font-size: .8rem; color: var(--danger); text-align: right; max-width: 55%; }
+.filters .pdf { margin-left: auto; align-self: flex-end; padding: 8px 14px; font-size: .9rem; }

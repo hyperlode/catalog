@@ -2,8 +2,8 @@
 // security comes from the Row Level Security policies in supabase/schema.sql.
 // NEVER put the service_role key in this repository.
 const CONFIG = {
-  SUPABASE_URL: 'https://YOUR-PROJECT.supabase.co',
-  SUPABASE_ANON_KEY: 'YOUR-ANON-KEY',
+  SUPABASE_URL: 'https://yqbbhwmshbxlzraojspm.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_cJ_C_lpTnh1otFgaUcKs0A_6UrWJ6_I',
   BUCKET: 'artworks',
-  SITE_TITLE: 'Archief Philippe',
+  SITE_TITLE: 'Catalog',
 };
