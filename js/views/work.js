@@ -3,11 +3,12 @@ Views.work = (() => {
 
 async function render(el, id) {
   const a = await getArtwork(id);
-  el.append(
+  fill(el,
     h('a', { class: 'link', href: '#/' }, t.back),
     h('h1', {}, a.title),
     h('p', { class: 'muted' },
-      formatDate(a.date, a.date_precision), ' · ', t.types[a.type] || a.type),
+      formatDate(a.date, a.date_precision), ' · ', t.types[a.type] || a.type,
+      a.status ? ` · ${t.statuses[a.status] || a.status}` : ''),
     a.category
       ? h('p', {}, h('a', { class: 'chip', href: `#/category/${a.category.id}` }, a.category.name))
       : null,

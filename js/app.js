@@ -6,8 +6,8 @@ const routes = [
   [/^\/?$/, () => Views.timeline],
   [/^\/category\/([^/]+)$/, () => Views.category],
   [/^\/work\/([^/]+)$/, () => Views.work],
-  [/^\/add$/, () => Views.form],
-  [/^\/edit\/([^/]+)$/, () => Views.form],
+  [/^\/add(?:\/([a-z]+))?$/, () => Views.add],
+  [/^\/edit\/([^/]+)(?:\/([a-z]+))?$/, () => Views.edit],
   [/^\/login$/, () => Views.login],
 ];
 
@@ -20,9 +20,8 @@ function renderChrome() {
       ? h('button', { class: 'link', onclick: () => db.auth.signOut() }, t.logout)
       : h('a', { class: 'link', href: '#/login' }, t.login),
   );
-  document.getElementById('fab').replaceChildren(
-    auth.loggedIn ? h('a', { class: 'fab', href: '#/add' }, '+ ', t.add) : null,
-  );
+  fill(document.getElementById('fab'),
+    auth.loggedIn ? h('a', { class: 'fab', href: '#/add' }, '+ ', t.add) : null);
 }
 
 let token = 0;
@@ -30,13 +29,15 @@ async function render() {
   const my = ++token;
   const app = document.getElementById('app');
   const path = location.hash.slice(1) || '/';
+  // No floating Add button inside the add/edit wizard (tapping it would restart the form).
+  document.getElementById('fab').hidden = /^\/(add|edit)/.test(path);
   for (const [re, view] of routes) {
     const m = path.match(re);
     if (!m) continue;
     app.replaceChildren(h('p', { class: 'muted' }, t.loading));
     const content = h('div');
     try {
-      await view().render(content, ...m.slice(1).map(decodeURIComponent));
+      await view().render(content, ...m.slice(1).map((x) => (x === undefined ? undefined : decodeURIComponent(x))));
     } catch (e) {
       console.error(e);
       content.replaceChildren(h('p', { class: 'error' }, `${t.error}: ${e.message || e}`));

@@ -89,7 +89,7 @@ const PDF = (() => {
     const title = doc.splitTextToSize(a.title, W).slice(0, 2);
     text(doc, title, M, y + 4, { size: 16, bold: true });
     y += 4 + title.length * 7;
-    text(doc, `${formatDate(a.date, a.date_precision)}  ·  ${t.types[a.type] || a.type}`, M, y, { size: 10, gray: 110 });
+    text(doc, [formatDate(a.date, a.date_precision), t.types[a.type] || a.type, a.status && (t.statuses[a.status] || a.status)].filter(Boolean).join('  ·  '), M, y, { size: 10, gray: 110 });
     if (a.description) {
       y += 8;
       const lines = doc.splitTextToSize(a.description, W);

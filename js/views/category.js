@@ -6,7 +6,7 @@ async function render(el, id) {
     getCategory(id),
     listArtworks({ categoryId: id, ascending: true }),
   ]);
-  el.append(
+  fill(el,
     h('a', { class: 'link', href: '#/' }, t.back),
     h('h1', {}, category.name),
     category.description ? h('p', {}, category.description) : null,
