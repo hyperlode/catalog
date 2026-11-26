@@ -5,7 +5,7 @@
 Views.add = Views.edit = null;
 (() => {
   const ORDER = ['fotos', 'titel', 'jaar', 'maand', 'dag', 'soort', 'status', 'reeks', 'beschrijving', 'overzicht'];
-  const REQUIRED = new Set(['fotos', 'titel', 'jaar', 'soort']); // these have no "Overslaan"
+  const REQUIRED = new Set(['jaar', 'soort']); // these have no "Overslaan"
   let draft = null; // everything typed so far, kept in memory while moving between steps
 
   const newDraft = () => ({
@@ -55,7 +55,7 @@ Views.add = Views.edit = null;
         h('button', {
           class: 'link', type: 'button',
           onclick: () => {
-            if (draft.files.length && !draft.editId && !confirm(t.confirmStop)) return;
+            if (!draft.editId && (draft.files.length || draft.title || draft.year || draft.type) && !confirm(t.confirmStop)) return;
             location.hash = exitUrl();
           },
         }, t.stop)),
@@ -108,7 +108,7 @@ Views.add = Views.edit = null;
       draw();
       shell(el, 'fotos', {
         body: () => h('div', {}, pick, input, grid),
-        collect: () => (draft.files.length ? null : t.needPhoto),
+        clear: () => { draft.files = []; },
       });
     },
 
@@ -116,36 +116,31 @@ Views.add = Views.edit = null;
       const input = h('input', { type: 'text', class: 'bigfield', value: draft.title, autocomplete: 'off' });
       shell(el, 'titel', {
         body: (submit) => { input.addEventListener('keydown', onEnter(submit)); focusSoon(input); return input; },
-        collect: () => {
-          if (!input.value.trim()) return t.needTitle;
-          draft.title = input.value.trim();
-          return null;
-        },
+        collect: () => { draft.title = input.value.trim(); return null; },
+        clear: () => { draft.title = ''; },
       });
     },
 
     jaar(el) {
-      // Buttons for the recent years (this year back to 2000); older years are typed in the field.
+      // The text box always holds the year. Tapping a year button (this year back to 2000) fills it in;
+      // older years are typed. Typing a year that has a button highlights that button.
       const now = new Date().getFullYear();
       const years = Array.from({ length: now - 2000 + 1 }, (_, i) => String(now - i)).map((y) => [y, y]);
       const input = h('input', {
-        type: 'number', class: 'bigfield', inputmode: 'numeric', min: 1000, max: 2999, placeholder: '1987',
+        type: 'number', class: 'bigfield', inputmode: 'numeric', min: 1000, max: 2999, placeholder: '1987', value: draft.year,
       });
-      let chosen = draft.year;
-      if (years.some(([y]) => y === chosen)) chosen = draft.year; else input.value = chosen;
       let group;
       shell(el, 'jaar', {
         body: (submit) => {
           input.addEventListener('keydown', onEnter(submit));
-          input.addEventListener('input', () => { chosen = ''; group.mark(null); });
-          group = choices(years, chosen, (v) => { chosen = v; input.value = ''; });
+          input.addEventListener('input', () => group.mark(input.value.trim()));
+          group = choices(years, draft.year, (v) => { input.value = v; });
           group.box.classList.add('years');
           return h('div', {}, h('p', { class: 'muted hint' }, t.otherYear), input, h('div', { class: 'gap' }), group.box);
         },
         collect: () => {
-          const value = input.value.trim() || chosen;
-          if (!buildDate(value)) return t.needYear;
-          draft.year = String(Number(value));
+          if (!buildDate(input.value)) return t.needYear;
+          draft.year = String(Number(input.value));
           return null;
         },
       });
@@ -177,10 +172,33 @@ Views.add = Views.edit = null;
       });
     },
 
-    soort(el) {
+    async soort(el) {
+      // The 4 built-in types, plus any custom type typed on an earlier work, plus a field for a new one.
+      const customs = [...new Set((await listTypes()).filter((v) => !(v in t.types)))].sort((x, y) => x.localeCompare(y));
+      const items = [...Object.entries(t.types), ...customs.map((v) => [v, v])];
+      const input = h('input', { type: 'text', class: 'bigfield', autocomplete: 'off', placeholder: '…' });
+      let chosen = draft.type;
+      if (!items.some(([v]) => v === chosen)) input.value = chosen;
+      let group;
       shell(el, 'soort', {
-        body: () => choices(Object.entries(t.types), draft.type, (v) => { draft.type = v; }).box,
-        collect: () => (draft.type ? null : t.needType),
+        body: (submit) => {
+          input.addEventListener('keydown', onEnter(submit));
+          input.addEventListener('input', () => { chosen = ''; draft.type = ''; group.mark(null); });
+          group = choices(items, input.value ? '' : chosen, (v) => { chosen = v; draft.type = v; input.value = ''; });
+          return h('div', {}, group.box, h('p', { class: 'muted hint' }, t.newType), input);
+        },
+        collect: () => {
+          const typed = input.value.trim();
+          let value = chosen;
+          if (typed) {
+            // Typing a name that already exists (built-in label or earlier custom type) reuses it.
+            const hit = items.find(([key, label]) => key.toLowerCase() === typed.toLowerCase() || label.toLowerCase() === typed.toLowerCase());
+            value = hit ? hit[0] : typed;
+          }
+          if (!value) return t.needType;
+          draft.type = value;
+          return null;
+        },
       });
     },
 
@@ -230,7 +248,7 @@ Views.add = Views.edit = null;
         jaar: () => draft.year,
         maand: () => (draft.month ? new Date(2000, draft.month - 1, 1).toLocaleDateString('nl-BE', { month: 'long' }) : ''),
         dag: () => draft.day,
-        soort: () => t.types[draft.type] || '',
+        soort: () => t.types[draft.type] || draft.type,
         status: () => t.statuses[draft.status] || '',
         reeks: () => draft.categoryName,
         beschrijving: () => draft.description,
@@ -245,7 +263,7 @@ Views.add = Views.edit = null;
       const back = h('button', { type: 'button', class: 'big', onclick: () => prev('overzicht') }, `← ${t.prev}`);
       save.addEventListener('click', async () => {
         const when = buildDate(draft.year, draft.month, draft.day);
-        if (!draft.title || !when || !draft.type || (!draft.editId && !draft.files.length)) {
+        if (!when || !draft.type) {
           status.textContent = t.error;
           return;
         }
@@ -297,7 +315,7 @@ Views.add = Views.edit = null;
     async render(el, step) {
       if (!auth.loggedIn) { location.hash = '#/login'; return; }
       // No step, lost draft (page refreshed) or no photos yet: (re)start at the first question.
-      if (!step || !draft || draft.editId || !STEPS[step] || (step !== 'fotos' && !draft.files.length)) {
+      if (!step || !draft || draft.editId || !STEPS[step]) {
         if (!step || !draft || draft.editId) draft = newDraft();
         if (step !== 'fotos') return go('fotos', true);
       }

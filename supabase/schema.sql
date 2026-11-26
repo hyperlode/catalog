@@ -16,7 +16,7 @@ create table artwork (
   title          text not null,
   date           date not null,
   date_precision text not null default 'day' check (date_precision in ('year', 'month', 'day')),
-  type           text not null check (type in ('sculpture', 'drawing', 'painting', 'watercolour')),
+  type           text not null,  -- 'sculpture' | 'drawing' | 'painting' | 'watercolour' or any custom text
   description    text,
   status         text check (status in ('study', 'process', 'finaal')),  -- null = not set (shown as "-")
   category_id    uuid references category (id) on delete set null,

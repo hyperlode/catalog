@@ -12,6 +12,8 @@ function select(label, value, options, onchange) {
 async function render(el) {
   const [artworks, categories] = await Promise.all([listArtworks(), listCategories()]);
   const list = h('div');
+  const customTypes = [...new Set(artworks.map((a) => a.type).filter((v) => !(v in t.types)))].sort();
+  const typeOptions = [...Object.entries(t.types), ...customTypes.map((v) => [v, v])];
 
   function draw() {
     const shown = artworks.filter((a) =>
@@ -31,7 +33,7 @@ async function render(el) {
   el.append(
     h('div', { class: 'filters' },
       select(t.type, filter.type,
-        [['', t.all], ...Object.entries(t.types)],
+        [['', t.all], ...typeOptions],
         (v) => { filter.type = v; draw(); }),
       categories.length
         ? select(t.category, filter.category,

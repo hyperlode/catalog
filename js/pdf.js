@@ -86,7 +86,7 @@ const PDF = (() => {
       }
       y = top + 28 + 8;
     }
-    const title = doc.splitTextToSize(a.title, W).slice(0, 2);
+    const title = doc.splitTextToSize(a.title || t.untitled, W).slice(0, 2);
     text(doc, title, M, y + 4, { size: 16, bold: true });
     y += 4 + title.length * 7;
     text(doc, [formatDate(a.date, a.date_precision), t.types[a.type] || a.type, a.status && (t.statuses[a.status] || a.status)].filter(Boolean).join('  ·  '), M, y, { size: 10, gray: 110 });
@@ -148,7 +148,7 @@ const PDF = (() => {
       const node = doc.outline ? doc.outline.add(null, ch.name, { pageNumber: startPage[c] }) : null;
       for (let w = 0; w < ch.works.length; w++) {
         await workPage(doc, ch.name, ch.works[w]);
-        if (node) doc.outline.add(node, ch.works[w].title, { pageNumber: startPage[c] + 1 + w });
+        if (node) doc.outline.add(node, ch.works[w].title || t.untitled, { pageNumber: startPage[c] + 1 + w });
         onProgress(++done, artworks.length);
       }
     }

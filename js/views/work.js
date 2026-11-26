@@ -5,7 +5,7 @@ async function render(el, id) {
   const a = await getArtwork(id);
   fill(el,
     h('a', { class: 'link', href: '#/' }, t.back),
-    h('h1', {}, a.title),
+    h('h1', {}, a.title || t.untitled),
     h('p', { class: 'muted' },
       formatDate(a.date, a.date_precision), ' · ', t.types[a.type] || a.type,
       a.status ? ` · ${t.statuses[a.status] || a.status}` : ''),
@@ -15,7 +15,7 @@ async function render(el, id) {
     a.description ? h('p', { class: 'description' }, a.description) : null,
     h('div', { class: 'photos' }, a.artwork_image.map((img) =>
       h('figure', {},
-        h('img', { src: publicUrl(img.path_web), alt: a.title, loading: 'lazy' }),
+        h('img', { src: publicUrl(img.path_web), alt: a.title || t.untitled, loading: 'lazy' }),
         h('a', { class: 'link small', href: publicUrl(img.path_original), target: '_blank', rel: 'noopener' }, t.fullSize)))),
     auth.loggedIn
       ? h('div', { class: 'actions' },

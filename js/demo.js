@@ -53,6 +53,9 @@ const Demo = (() => {
     async listCategories() {
       return [...categories].sort((a, b) => a.name.localeCompare(b.name));
     },
+    async listTypes() {
+      return [...new Set(artworks.map((a) => a.type))];
+    },
     async getCategory(id) {
       return categories.find((c) => c.id === id);
     },

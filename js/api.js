@@ -41,6 +41,12 @@ async function listCategories() {
   return check(await db.from('category').select('*').order('name'));
 }
 
+// All type values in use (the 4 built-in keys and any custom ones the user typed), without duplicates.
+async function listTypes() {
+  if (!isConfigured) return Demo.listTypes();
+  return [...new Set(check(await db.from('artwork').select('type')).map((r) => r.type))];
+}
+
 async function getCategory(id) {
   if (!isConfigured) return Demo.getCategory(id);
   return check(await db.from('category').select('*').eq('id', id).single());
