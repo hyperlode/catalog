@@ -95,19 +95,26 @@ Views.add = Views.edit = null;
 
   const STEPS = {
     fotos(el) {
+      // Two inputs: the gallery picker (several photos at once) and a camera input. `capture` makes a phone
+      // open its camera straight away (one photo per tap); without it Android often only offers the gallery.
       const input = h('input', { type: 'file', accept: 'image/*', multiple: true, class: 'hidden' });
+      const camera = h('input', { type: 'file', accept: 'image/*', capture: 'environment', class: 'hidden' });
       const grid = h('div', { class: 'previews big' });
+      const shoot = h('button', { type: 'button', class: 'big alt', onclick: () => camera.click() });
       const pick = h('button', { type: 'button', class: 'big alt', onclick: () => input.click() });
       const draw = () => {
         grid.replaceChildren(...draft.files.map((f, i) => h('div', { class: 'preview' },
           h('img', { src: previewUrl(f), alt: '' }),
           h('button', { type: 'button', class: 'remove', onclick: () => { draft.files.splice(i, 1); draw(); } }, t.remove))));
+        shoot.textContent = draft.files.length ? t.takeMore : t.takePhoto;
         pick.textContent = draft.files.length ? t.morePhotos : t.choosePhotos;
       };
-      input.addEventListener('change', () => { draft.files.push(...input.files); input.value = ''; draw(); });
+      for (const source of [input, camera]) {
+        source.addEventListener('change', () => { draft.files.push(...source.files); source.value = ''; draw(); });
+      }
       draw();
       shell(el, 'fotos', {
-        body: () => h('div', {}, pick, input, grid),
+        body: () => h('div', {}, shoot, pick, input, camera, grid),
         clear: () => { draft.files = []; },
       });
     },
